@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Шахматы — играйте с другом</title>
+<meta name="description" content="Шахматы с полными правилами, часами, ботом и онлайн-игрой по коду комнаты." />
+<meta name="theme-color" content="#1f1e1c" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23312e2b'/%3E%3Ctext x='50' y='78' font-size='72' text-anchor='middle' fill='%23f0f0f0'%3E%E2%99%9E%3C/text%3E%3C/svg%3E" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div id="app">
+
+  <!-- ============================== ЛОББИ ============================== -->
+  <section class="screen screen-lobby" id="lobby">
+    <div class="lobby-bg" aria-hidden="true"></div>
+
+    <main class="lobby-card">
+      <div class="brand">
+        <span class="brand-mark">♞</span>
+        <span class="brand-name">ШАХМАТЫ</span>
+      </div>
+
+      <h1>Сыграйте партию<br /><span class="accent">с другом</span></h1>
+      <p class="lobby-sub">Онлайн по коду комнаты, вдвоём на одном устройстве или против бота.</p>
+
+      <div class="modes" role="tablist" aria-label="Режим игры">
+        <button class="mode is-active" data-mode="online" role="tab">Онлайн</button>
+        <button class="mode" data-mode="local" role="tab">Вдвоём</button>
+        <button class="mode" data-mode="bot" role="tab">С ботом</button>
+      </div>
+
+      <div class="mode-body">
+        <div class="mode-panel" data-panel="online">
+          <div class="join-row">
+            <div class="join-box">
+              <input id="roomInput" maxlength="5" placeholder="КОД КОМНАТЫ" autocomplete="off" spellcheck="false" aria-label="Код комнаты" />
+              <button class="btn" id="joinRoom">Войти</button>
+            </div>
+          </div>
+          <div class="net-choice">
+            <div class="setting-label">Способ связи</div>
+            <div class="segmented small" id="netModes" role="group" aria-label="Способ связи">
+              <button data-net="p2p" class="is-active">Интернет</button>
+              <button data-net="lan">Локальная сеть</button>
+            </div>
+            <p class="hint" id="netHint">Прямое соединение через интернет (WebRTC). Обоим нужен современный браузер и доступ в сеть.</p>
+          </div>
+          <p class="hint">Нажмите «Создать комнату» ниже и отправьте другу код из 5 символов. Друг открывает эту же страницу, вводит код — и вы играете.</p>
+        </div>
+
+        <div class="mode-panel hidden" data-panel="local">
+          <p class="hint">Два игрока за одним экраном. Белые и чёрные ходят по очереди, доска переворачивается вручную.</p>
+        </div>
+
+        <div class="mode-panel hidden" data-panel="bot">
+          <div class="segmented" id="botLevels" role="group" aria-label="Уровень бота">
+            <button data-level="1">Новичок</button>
+            <button data-level="2" class="is-active">Любитель</button>
+            <button data-level="3">Клубный</button>
+          </div>
+          <p class="hint">Бот считает варианты на несколько ходов вперёд. «Клубный» думает дольше всего.</p>
+        </div>
+      </div>
+
+      <div class="setting">
+        <div class="setting-label">Контроль времени</div>
+        <div class="tcs" id="tcs" role="group" aria-label="Контроль времени">
+          <button data-tc="60,0">1 + 0</button>
+          <button data-tc="180,2">3 + 2</button>
+          <button data-tc="300,0" class="is-active">5 + 0</button>
+          <button data-tc="600,0">10 + 0</button>
+          <button data-tc="900,10">15 + 10</button>
+          <button data-tc="0,0">∞</button>
+        </div>
+      </div>
+
+      <div class="setting" id="sideSetting">
+        <div class="setting-label">Ваш цвет</div>
+        <div class="sides" id="sides" role="group" aria-label="Ваш цвет">
+          <button data-side="w" class="is-active" title="Белые">♔<span>Белые</span></button>
+          <button data-side="random" title="Случайно">⚄<span>Случайно</span></button>
+          <button data-side="b" title="Чёрные">♚<span>Чёрные</span></button>
+        </div>
+      </div>
+
+      <p class="err" id="lobbyError" role="alert"></p>
+      <button class="btn primary big" id="startBtn">Начать игру</button>
+      <p class="lobby-foot">Полные правила · часы · история ходов · PGN · звук</p>
+    </main>
+  </section>
+
+  <!-- ============================== ИГРА ============================== -->
+  <section class="screen screen-game hidden" id="game">
+    <header class="topbar">
+      <button class="icon-btn" id="backBtn" title="В меню" aria-label="В меню">←</button>
+      <div class="topbar-title">
+        <span id="gameTitle">Партия</span>
+        <span class="room-badge hidden" id="roomBadge">код: <b id="roomBadgeCode"></b></span>
+      </div>
+      <div class="topbar-right">
+        <button class="icon-btn" id="settingsBtn" title="Настройки" aria-label="Настройки">⚙</button>
+        <button class="icon-btn" id="soundBtn" title="Звук" aria-label="Звук">🔊</button>
+      </div>
+    </header>
+
+    <div class="game-main">
+      <div class="board-col" id="boardCol">
+        <div class="player-card" id="topPlayer"></div>
+
+        <div class="board-holder">
+          <div class="board" id="board">
+            <div class="layer sq-layer" id="sqLayer"></div>
+            <div class="layer hl-layer" id="hlLayer"></div>
+            <div class="layer piece-layer" id="pieceLayer"></div>
+            <div class="layer coord-layer" id="coordLayer"></div>
+            <div class="promo hidden" id="promo"></div>
+          </div>
+
+          <div class="wait-overlay hidden" id="waitOverlay">
+            <div class="wait-card">
+              <div class="spinner"></div>
+              <h3>Ждём соперника</h3>
+              <p class="wait-sub">Отправьте другу код комнаты:</p>
+              <div class="code-row">
+                <code id="waitCode">-----</code>
+                <button class="icon-btn" id="copyCodeBtn" title="Скопировать код">⧉</button>
+              </div>
+              <p class="wait-tip">Друг должен открыть эту же страницу, выбрать «Онлайн» и ввести код.</p>
+              <button class="btn ghost" id="cancelWait">Отмена</button>
+            </div>
+          </div>
+
+          <div class="result-overlay hidden" id="resultOverlay">
+            <div class="result-card">
+              <div class="result-icon" id="resultIcon">🏁</div>
+              <h2 id="resultTitle">Партия окончена</h2>
+              <p id="resultSub"></p>
+              <div class="result-btns">
+                <button class="btn primary" id="rematchBtn">Играть снова</button>
+                <button class="btn" id="resultMenuBtn">В меню</button>
+              </div>
+              <button class="link-btn" id="resultPgnBtn">Скопировать PGN</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="player-card" id="bottomPlayer"></div>
+      </div>
+
+      <aside class="side">
+        <div class="side-block moves-block">
+          <div class="side-head">
+            <div class="side-title">Ходы</div>
+            <div class="side-tools">
+              <button class="mini-btn" id="copyPgnBtn" title="Скопировать PGN">PGN</button>
+              <button class="mini-btn" id="fenBtn" title="Скопировать FEN">FEN</button>
+            </div>
+          </div>
+          <div class="moves" id="moves" tabindex="0">
+            <div class="moves-empty">Партия ещё не началась</div>
+          </div>
+        </div>
+
+        <div class="side-block chat-block hidden" id="chatBlock">
+          <div class="side-head">
+            <div class="side-title">Чат</div>
+            <span class="chat-status" id="chatStatus"></span>
+          </div>
+          <div class="chat-log" id="chatLog"></div>
+          <div class="chat-quick" id="chatQuick">
+            <button>Привет!</button>
+            <button>Удачи 🙂</button>
+            <button>Хорошая партия!</button>
+            <button>Ничья?</button>
+          </div>
+          <form class="chat-form" id="chatForm">
+            <input id="chatInput" maxlength="180" placeholder="Сообщение…" autocomplete="off" />
+            <button class="icon-btn" type="submit" title="Отправить">➤</button>
+          </form>
+        </div>
+
+        <div class="side-block nav-block">
+          <div class="navbar">
+            <button class="icon-btn" data-nav="start" title="В начало">⏮</button>
+            <button class="icon-btn" data-nav="prev" title="Назад">◀</button>
+            <span class="nav-label" id="navLabel">старт</span>
+            <button class="icon-btn" data-nav="next" title="Вперёд">▶</button>
+            <button class="icon-btn" data-nav="end" title="В конец">⏭</button>
+          </div>
+        </div>
+
+        <div class="actionbar">
+          <button class="action-btn" id="flipBtn" title="Перевернуть доску"><span>⇅</span>Перевернуть</button>
+          <button class="action-btn" id="undoBtn" title="Отменить ход"><span>↶</span>Отменить</button>
+          <button class="action-btn" id="drawBtn" title="Предложить ничью"><span>½</span>Ничья</button>
+          <button class="action-btn danger" id="resignBtn" title="Сдаться"><span>🏳</span>Сдаться</button>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============================== МОДАЛКИ ============================== -->
+  <div class="modal hidden" id="modal" role="dialog" aria-modal="true">
+    <div class="modal-card" id="modalCard"></div>
+  </div>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+</div>
+
+<script src="js/engine.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/sound.js"></script>
+<script src="js/vendor/trystero-torrent.js"></script>
+<script src="js/netws.js"></script>
+<script src="js/online.js"></script>
+<script src="js/board.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
