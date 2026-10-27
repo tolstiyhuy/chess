@@ -7,7 +7,7 @@
 <meta name="description" content="Шахматы с полными правилами, часами, ботом и онлайн-игрой по коду комнаты." />
 <meta name="theme-color" content="#1f1e1c" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23312e2b'/%3E%3Ctext x='50' y='78' font-size='72' text-anchor='middle' fill='%23f0f0f0'%3E%E2%99%9E%3C/text%3E%3C/svg%3E" />
-<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/style.css?v=3" />
 </head>
 <body>
 <div id="app">
@@ -35,19 +35,20 @@
         <div class="mode-panel" data-panel="online">
           <div class="join-row">
             <div class="join-box">
-              <input id="roomInput" maxlength="5" placeholder="КОД КОМНАТЫ" autocomplete="off" spellcheck="false" aria-label="Код комнаты" />
+              <input id="roomInput" maxlength="10" placeholder="КОД КОМНАТЫ" autocomplete="off" spellcheck="false" aria-label="Код комнаты" />
               <button class="btn" id="joinRoom">Войти</button>
             </div>
           </div>
           <div class="net-choice">
             <div class="setting-label">Способ связи</div>
             <div class="segmented small" id="netModes" role="group" aria-label="Способ связи">
-              <button data-net="p2p" class="is-active">Интернет</button>
+              <button data-net="relay" class="is-active">Через сервер</button>
+              <button data-net="p2p">P2P</button>
               <button data-net="lan">Локальная сеть</button>
             </div>
-            <p class="hint" id="netHint">Прямое соединение через интернет (WebRTC). Обоим нужен современный браузер и доступ в сеть.</p>
+            <p class="hint" id="netHint">Работает почти всегда: оба игрока соединяются через публичный сервер-ретранслятор. Код комнаты — ваш общий «адрес».</p>
           </div>
-          <p class="hint">Нажмите «Создать комнату» ниже и отправьте другу код из 5 символов. Друг открывает эту же страницу, вводит код — и вы играете.</p>
+          <p class="hint">Нажмите «Создать комнату» ниже и отправьте другу код. Друг открывает эту же страницу, вводит код — и вы играете.</p>
         </div>
 
         <div class="mode-panel hidden" data-panel="local">
@@ -209,13 +210,15 @@
   <div class="toasts" id="toasts" aria-live="polite"></div>
 </div>
 
-<script src="js/engine.js"></script>
-<script src="js/ai.js"></script>
-<script src="js/sound.js"></script>
-<script src="js/vendor/trystero-torrent.js"></script>
-<script src="js/netws.js"></script>
-<script src="js/online.js"></script>
-<script src="js/board.js"></script>
-<script src="js/app.js"></script>
+<script src="js/engine.js?v=3"></script>
+<script src="js/ai.js?v=3"></script>
+<script src="js/sound.js?v=3"></script>
+<script src="js/vendor/trystero-torrent.js?v=3"></script>
+<script src="js/netws.js?v=3"></script>
+<script src="js/mqttlite.js?v=3"></script>
+<script src="js/netrelay.js?v=3"></script>
+<script src="js/online.js?v=3"></script>
+<script src="js/board.js?v=3"></script>
+<script src="js/app.js?v=3"></script>
 </body>
 </html>

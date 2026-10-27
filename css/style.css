@@ -218,6 +218,7 @@ button { cursor: pointer; }
 .segmented.small button { padding: 7px 12px; font-size: 12.5px; border-radius: 8px; }
 
 .net-choice { margin-top: 14px; }
+.net-choice .segmented { flex-wrap: wrap; }
 .net-choice .hint { margin-top: 8px; }
 
 .setting { margin-top: 16px; }

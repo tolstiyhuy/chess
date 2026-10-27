@@ -76,7 +76,7 @@
 
   const App = {
     mode: 'online',
-    netMode: 'p2p',
+    netMode: 'relay',
     side: 'w',
     tc: { base: 300000, inc: 0 },
     level: 2,
@@ -1111,7 +1111,11 @@
       if (!window.ChessNetWs) throw new Error('Модуль локальной сети не загрузился. Обновите страницу.');
       return new window.ChessNetWs();
     }
-    if (!window.TrysteroTorrent || !window.ChessNet) throw new Error('Онлайн-модуль не загрузился. Обновите страницу.');
+    if (App.netMode === 'relay') {
+      if (!window.ChessNetRelay || !window.MiniMqtt) throw new Error('Онлайн-модуль не загрузился. Обновите страницу.');
+      return new window.ChessNetRelay();
+    }
+    if (!window.TrysteroTorrent || !window.ChessNet) throw new Error('P2P-модуль не загрузился. Обновите страницу.');
     return new window.ChessNet();
   }
 
@@ -1133,7 +1137,7 @@
       isHost: true,
     });
     showScreen('game');
-    showWaiting(null, 'Создаём комнату…', App.netMode === 'lan' ? 'Подключаемся к серверу…' : 'Подключаемся к сигнальным трекерам…');
+    showWaiting(null, 'Создаём комнату…', App.netMode === 'lan' ? 'Подключаемся к серверу…' : App.netMode === 'relay' ? 'Подключаемся к серверу…' : 'Подключаемся к сигнальным трекерам…');
     els.roomBadgeCode.textContent = '—';
     net = newNet;
     bindNet();
@@ -1146,7 +1150,7 @@
         'Ждём соперника',
         App.netMode === 'lan'
           ? 'Друг открывает адрес из окна сервера и вводит этот код:'
-          : 'Друг открывает эту же страницу и вводит код. Не подключается — попробуйте «Локальная сеть».'
+          : 'Друг открывает эту же страницу и вводит код:'
       );
       toast('Комната создана: ' + code);
     } catch (e) {
@@ -1162,8 +1166,8 @@
   async function joinRoom() {
     showLobbyError('');
     const code = els.roomInput.value.trim().toUpperCase();
-    if (code.length !== 5) {
-      showLobbyError('Код комнаты состоит из 5 символов');
+    if (code.length < 5) {
+      showLobbyError('Введите код комнаты');
       els.roomInput.focus();
       return;
     }
@@ -1249,7 +1253,9 @@
       hint.textContent =
         App.netMode === 'lan'
           ? 'Игра через ваш сервер: друг открывает адрес из окна start.bat (например, http://192.168.1.5:8000) и вводит этот же код. Подходит для локальной сети или туннеля.'
-          : 'Прямое соединение через интернет (WebRTC). Обоим нужен современный браузер и доступ в сеть; в редких сетях соединение может не установиться.';
+          : App.netMode === 'relay'
+            ? 'Работает почти всегда: оба игрока соединяются через публичный сервер-ретранслятор. Код комнаты — ваш общий «адрес».'
+            : 'Прямое соединение через интернет (WebRTC) без сервера. В некоторых сетях и браузерах может не установиться — тогда выберите «Через сервер».';
     }
   }
 
@@ -1453,7 +1459,8 @@
       App.tc = { base: sec * 1000, inc: inc * 1000 };
     }
 
-    App.netMode = store.get('netmode', 'p2p') === 'lan' ? 'lan' : 'p2p';
+    const savedNet = store.get('netmode', 'relay');
+    App.netMode = savedNet === 'lan' || savedNet === 'p2p' ? savedNet : 'relay';
 
     bindLobby();
     bindGame();
