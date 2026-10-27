@@ -272,6 +272,35 @@ setInterval(() => {
   }
 }, 25000).unref();
 
+// открыть страницу игры в браузере по умолчанию (отключить: OPEN=0)
+function openBrowser(url) {
+  const { exec } = require('child_process');
+  const cmd =
+    process.platform === 'win32'
+      ? 'start "" "' + url + '"'
+      : process.platform === 'darwin'
+        ? 'open "' + url + '"'
+        : 'xdg-open "' + url + '"';
+  exec(cmd, (err) => {
+    if (err) console.log('  Браузер не открылся сам — откройте вручную: ' + url);
+  });
+}
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.log('');
+    console.log('  Порт ' + PORT + ' уже занят — похоже, сервер уже запущен.');
+    console.log('  Откройте в браузере:  http://localhost:' + PORT);
+    console.log('  Если это не так, закройте старое окно или задайте другой порт:  set PORT=8001');
+    console.log('');
+    openBrowser('http://localhost:' + PORT);
+    setTimeout(() => process.exit(1), 1500);
+    return;
+  }
+  console.error(err);
+  process.exit(1);
+});
+
 server.listen(PORT, '0.0.0.0', () => {
   const nets = os.networkInterfaces();
   const ips = [];
@@ -290,4 +319,6 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log('');
   console.log('  Не закрывайте это окно, пока играете. Ctrl+C — остановить.');
   console.log('');
+
+  if (process.env.OPEN !== '0') openBrowser('http://localhost:' + PORT);
 });
