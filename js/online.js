@@ -198,3 +198,5 @@ const ChessNet = (function () {
 
   return Net;
 })();
+
+if (typeof window !== 'undefined') window.ChessNet = ChessNet;

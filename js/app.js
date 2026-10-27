@@ -1111,7 +1111,7 @@
       if (!window.ChessNetWs) throw new Error('Модуль локальной сети не загрузился. Обновите страницу.');
       return new window.ChessNetWs();
     }
-    if (!window.TrysteroTorrent) throw new Error('Онлайн-модуль не загрузился. Обновите страницу.');
+    if (!window.TrysteroTorrent || !window.ChessNet) throw new Error('Онлайн-модуль не загрузился. Обновите страницу.');
     return new window.ChessNet();
   }
 
